@@ -18,7 +18,10 @@ import {
   Mail,
   MoreVertical,
   Filter,
-  Download
+  Download,
+  FileText,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 
 export default function Classes() {
@@ -30,6 +33,12 @@ export default function Classes() {
   const [isCommitting, setIsCommitting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [filterActive, setFilterActive] = useState(false);
+
+  // Lesson Plan / Scheme of Work Generator State
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedPlan, setGeneratedPlan] = useState(null);
+  const [planType, setPlanType] = useState('scheme'); // 'scheme' or 'lesson'
+  const [topicInput, setTopicInput] = useState('');
 
   const classes = teacherData?.classes || [];
   const selectedClass = classes.find(c => c.id === selectedClassId);
@@ -69,6 +78,28 @@ export default function Classes() {
       setIsExporting(false);
       alert('Class data export started. Check your downloads.');
     }, 2000);
+  };
+
+  const handleGeneratePlan = () => {
+    if (!topicInput.trim()) {
+      alert('Please enter a topic or subject focus to generate.');
+      return;
+    }
+    setIsGenerating(true);
+    setGeneratedPlan(null);
+    
+    // Simulate AI Generation
+    setTimeout(() => {
+      setIsGenerating(false);
+      const isScheme = planType === 'scheme';
+      setGeneratedPlan({
+        title: isScheme ? `Scheme of Work: ${topicInput}` : `Lesson Plan: ${topicInput}`,
+        date: new Date().toLocaleDateString(),
+        content: isScheme 
+          ? `### Term Overview\nFocuses on introducing ${topicInput} according to CBC standards.\n\n### Week 1\n- Introduction to core concepts of ${topicInput}\n- Learner-centered activities: Brainstorming sessions.\n\n### Week 2\n- Deep dive and practical applications.\n- Assessment: Formative observation.\n\n### Week 3\n- Project-based learning relating to ${topicInput}.\n- Integrating digital literacy.\n\n### Resources Required\n- Course book, digital devices, realia.`
+          : `### Lesson Objective\nBy the end of the lesson, the learner should be able to understand and apply concepts of ${topicInput}.\n\n### Introduction (10 mins)\n- Recap previous lesson.\n- Hook: Present a real-world scenario involving ${topicInput}.\n\n### Main Activity (25 mins)\n- Group discussion and collaborative exploration of ${topicInput}.\n- Teacher facilitates and guides groups.\n\n### Conclusion (5 mins)\n- Summarize key points.\n- Exit ticket: Quick reflection question on ${topicInput}.\n\n### Assessment Rubric\n- Exceeding Expectation: Can teach the concept to peers.\n- Meeting Expectation: Accurately explains ${topicInput}.`
+      });
+    }, 2500);
   };
 
 
@@ -129,7 +160,8 @@ export default function Classes() {
           {[
             { id: 'roster', label: 'Roster', icon: Users },
             { id: 'grades', label: 'CBC Assessment', icon: Award },
-            { id: 'attendance', label: 'Attendance Roll', icon: ClipboardList }
+            { id: 'attendance', label: 'Attendance Roll', icon: ClipboardList },
+            { id: 'plans', label: 'Schemes & Plans', icon: BookOpen }
           ].map(tab => (
             <button
               key={tab.id}
@@ -324,6 +356,85 @@ export default function Classes() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {activeTab === 'plans' && (
+            <div className="p-6 md:p-8 bg-slate-50 min-h-[400px]">
+              <div className="max-w-3xl mx-auto bg-white border border-slate-200 rounded shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+                  <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded flex items-center justify-center">
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">AI Pedagogical Assistant</h3>
+                    <p className="text-xs font-medium text-slate-500">Generate structured schemes of work and CBC-aligned lesson plans.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Document Type</label>
+                    <div className="flex p-1 bg-slate-100 rounded border border-slate-200 w-fit">
+                      <button 
+                        onClick={() => setPlanType('scheme')}
+                        className={`px-4 py-2 text-sm font-bold rounded transition-colors ${planType === 'scheme' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Scheme of Work
+                      </button>
+                      <button 
+                        onClick={() => setPlanType('lesson')}
+                        className={`px-4 py-2 text-sm font-bold rounded transition-colors ${planType === 'lesson' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                      >
+                        Lesson Plan
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Topic / Subject Focus</label>
+                    <input 
+                      type="text" 
+                      value={topicInput}
+                      onChange={(e) => setTopicInput(e.target.value)}
+                      placeholder="e.g. Introduction to Fractions, Plant Life Cycle..."
+                      className="w-full border border-slate-200 rounded px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    />
+                  </div>
+
+                  <button 
+                    onClick={handleGeneratePlan}
+                    disabled={isGenerating || !topicInput.trim()}
+                    className="w-full py-3 bg-indigo-600 text-white text-sm font-bold rounded hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {isGenerating ? <RefreshCw size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                    {isGenerating ? 'Drafting Document...' : `Generate ${planType === 'scheme' ? 'Scheme of Work' : 'Lesson Plan'}`}
+                  </button>
+                </div>
+
+                {generatedPlan && (
+                  <div className="mt-8 pt-8 border-t border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-bold text-slate-900 flex items-center gap-2">
+                        <FileText size={18} className="text-indigo-600" />
+                        {generatedPlan.title}
+                      </h4>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-emerald-50 text-emerald-700 rounded uppercase">Ready</span>
+                    </div>
+                    <div className="bg-slate-50 border border-slate-200 rounded p-5 whitespace-pre-wrap text-sm text-slate-700 leading-relaxed font-medium">
+                      {generatedPlan.content}
+                    </div>
+                    <div className="mt-4 flex gap-3 justify-end">
+                      <button className="px-4 py-2 text-xs font-bold text-slate-600 border border-slate-200 bg-white rounded hover:bg-slate-50 transition-colors flex items-center gap-2">
+                        <Save size={14} /> Save Draft
+                      </button>
+                      <button className="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded hover:bg-indigo-700 transition-colors flex items-center gap-2">
+                        <Download size={14} /> Export PDF
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
