@@ -17,20 +17,23 @@ export default function LoginPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) return;
 
     setIsLoggingIn(true);
-    // Simulate API call
-    setTimeout(() => {
-      teacherLogin({
-        name: 'Mr. Solomon',
-        email: formData.email,
-        school: 'Somobloom',
-      });
+    setError('');
+    
+    try {
+      await teacherLogin(formData.email, formData.password);
       navigate('/teacher');
-    }, 1500);
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   return (
@@ -60,6 +63,12 @@ export default function LoginPage() {
               <h2 className="text-2xl font-bold text-slate-900">Teacher Login</h2>
               <p className="text-slate-500 text-sm">Access your workspace</p>
             </div>
+
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-sm font-medium text-center">
+                {error}
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="space-y-1.5">

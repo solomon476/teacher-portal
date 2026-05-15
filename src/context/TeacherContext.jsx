@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../lib/api';
 
 const TeacherContext = createContext();
 
@@ -99,18 +100,29 @@ export function TeacherProvider({ children }) {
       localStorage.setItem('teacherData', JSON.stringify(teacherData));
     } else {
       localStorage.removeItem('teacherData');
+      localStorage.removeItem('teacher_token');
     }
   }, [teacherData]);
 
-  const login = (data) => {
-    setTeacherData({
-      ...initialTeacherData,
-      ...data,
-      avatarUrl: null,
-    });
+  const login = async (email, password) => {
+    try {
+      const data = await api.post('/auth/login', { email, password });
+      
+      localStorage.setItem('teacher_token', data.token);
+      setTeacherData({
+        ...initialTeacherData, // Keep mock structure for now but with real user info
+        ...data.user,
+        avatarUrl: null,
+      });
+    } catch (error) {
+      console.error('Login failed:', error.message);
+      throw error;
+    }
   };
 
-  const logout = () => setTeacherData(null);
+  const logout = () => {
+    setTeacherData(null);
+  };
 
   const addClass = (newClass) => {
     setTeacherData(prev => ({
