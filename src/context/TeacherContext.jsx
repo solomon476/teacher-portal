@@ -3,125 +3,54 @@ import { api } from '../lib/api';
 
 const TeacherContext = createContext();
 
-const initialTeacherData = {
-  id: 't-1',
-  name: 'Mr. Solomon',
-  email: 'solomon@school.edu',
-  avatarUrl: null,
-  school: 'Somobloom',
-  classes: [
-    {
-      id: 'c-1',
-      name: 'Grade 4 Science',
-      grade: 'Grade 4',
-      term: 'Term 1, 2026',
-      role: 'home',
-      students: [
-        { 
-          id: 's-1', 
-          name: 'Alex Johnson', 
-          email: 'alex@school.edu', 
-          status: 'Active', 
-          portfolioCount: 4,
-          cbcAssessments: {
-            strands: [
-              { name: 'Living Things', level: 'EE' },
-              { name: 'Environment', level: 'ME' }
-            ],
-            competencies: {
-              communication: 'ME',
-              criticalThinking: 'EE',
-              selfEfficacy: 'ME'
-            }
-          },
-          attendance: { present: 18, total: 20 }
-        },
-        { 
-          id: 's-2', 
-          name: 'Sarah Smith', 
-          email: 'sarah@school.edu', 
-          status: 'Active', 
-          portfolioCount: 2,
-          cbcAssessments: {
-            strands: [
-              { name: 'Living Things', level: 'ME' },
-              { name: 'Environment', level: 'AE' }
-            ],
-            competencies: {
-              communication: 'EE',
-              criticalThinking: 'ME',
-              selfEfficacy: 'EE'
-            }
-          },
-          attendance: { present: 20, total: 20 }
-        },
-      ]
-    },
-    {
-      id: 'c-2',
-      name: 'Grade 5 Mathematics',
-      grade: 'Grade 5',
-      term: 'Term 1, 2026',
-      role: 'subject',
-      students: [
-        { 
-          id: 's-3', 
-          name: 'Michael Brown', 
-          email: 'michael@school.edu', 
-          status: 'Active', 
-          portfolioCount: 1,
-          cbcAssessments: {
-            strands: [
-              { name: 'Numbers', level: 'ME' },
-              { name: 'Measurement', level: 'EE' }
-            ],
-            competencies: {
-              communication: 'ME',
-              criticalThinking: 'AE',
-              selfEfficacy: 'ME'
-            }
-          },
-          attendance: { present: 15, total: 15 }
-        },
-      ]
-    }
-  ],
-  portfolioItems: []
-};
-
 export function TeacherProvider({ children }) {
-  const [teacherData, setTeacherData] = useState(() => {
-    const saved = localStorage.getItem('teacherData');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [teacherData, setTeacherData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const token = localStorage.getItem('teacher_token');
+  const isAuthenticated = !!token;
+
+  const fetchTeacherData = async () => {
+    if (!token) return;
+    setIsLoading(true);
+    try {
+      const { profile } = await api.get('/teacher/me');
+      const { classes } = await api.get('/teacher/classes');
+      
+      setTeacherData({
+        ...profile,
+        classes: classes.map(c => ({
+          ...c,
+          students: [] // Students can be fetched per class later
+        })),
+        portfolioItems: []
+      });
+    } catch (err) {
+      console.error('Failed to fetch teacher data:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (teacherData) {
-      localStorage.setItem('teacherData', JSON.stringify(teacherData));
+    if (isAuthenticated) {
+      fetchTeacherData();
     } else {
-      localStorage.removeItem('teacherData');
-      localStorage.removeItem('teacher_token');
+      setTeacherData(null);
     }
-  }, [teacherData]);
+  }, [isAuthenticated]);
 
   const login = async (email, password) => {
-    try {
-      const data = await api.post('/auth/login', { email, password });
-      
-      localStorage.setItem('teacher_token', data.token);
-      setTeacherData({
-        ...initialTeacherData, // Keep mock structure for now but with real user info
-        ...data.user,
-        avatarUrl: null,
-      });
-    } catch (error) {
-      console.error('Login failed:', error.message);
-      throw error;
-    }
+    const data = await api.post('/auth/login', { email, password });
+    localStorage.setItem('teacher_token', data.token);
+    await fetchTeacherData();
   };
 
   const logout = () => {
     setTeacherData(null);
+    localStorage.removeItem('teacher_token');
   };
 
   const addClass = (newClass) => {
@@ -227,6 +156,8 @@ export function TeacherProvider({ children }) {
   return (
     <TeacherContext.Provider value={{
       teacherData,
+      isLoading,
+      error,
       login,
       logout,
       addClass,
@@ -236,7 +167,8 @@ export function TeacherProvider({ children }) {
       updateTags,
       updateProfile,
       updateAssessmentLevel,
-      updateAttendance
+      updateAttendance,
+      refreshData: fetchTeacherData
     }}>
       {children}
     </TeacherContext.Provider>
