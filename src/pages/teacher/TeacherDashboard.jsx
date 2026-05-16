@@ -83,8 +83,8 @@ export default function TeacherDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Main Feed */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div className="space-y-6">
+          <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden h-full">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-slate-900">Recent Activity</h2>
               <button 
@@ -177,7 +177,11 @@ export default function TeacherDashboard() {
             )}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-lg p-6">
+        </div>
+
+        {/* Quick Actions */}
+        <div className="space-y-6">
+          <div className="bg-white border border-slate-200 rounded-lg p-6 h-full">
             <h3 className="font-bold text-slate-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <button 
