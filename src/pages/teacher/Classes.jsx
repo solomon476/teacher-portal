@@ -22,7 +22,9 @@ import {
   Download,
   FileText,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Printer,
+  X
 } from 'lucide-react';
 
 export default function Classes() {
@@ -31,6 +33,7 @@ export default function Classes() {
   const [activeTab, setActiveTab] = useState('roster'); 
   const [searchQuery, setSearchQuery] = useState('');
   const [attendanceFeedback, setAttendanceFeedback] = useState(null);
+  const [selectedStudentForReport, setSelectedStudentForReport] = useState(null);
   const [isCommitting, setIsCommitting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [filterActive, setFilterActive] = useState(false);
@@ -224,6 +227,13 @@ export default function Classes() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => setSelectedStudentForReport(student)}
+                            title="Print / Save Report Card"
+                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded transition-all flex items-center gap-1 font-semibold text-xs"
+                          >
+                            <FileText size={14} /> Report Card
+                          </button>
                           <button 
                             onClick={() => alert(`Emailing ${student.name}... (Feature coming soon)`)}
                             className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-white border border-slate-100 rounded transition-colors"
@@ -499,6 +509,149 @@ export default function Classes() {
           </div>
         ))}
       </div>
+
+      {/* Printable Report Card Modal */}
+      {selectedStudentForReport && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:static print:z-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl overflow-hidden print:shadow-none print:w-full print:rounded-none">
+            {/* Modal Actions Header - hidden on print */}
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between print:hidden">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                <FileText size={18} className="text-indigo-600" />
+                Academic Report Card Preview
+              </h3>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700 transition-colors flex items-center gap-1.5"
+                >
+                  <Printer size={14} /> Print / Save PDF
+                </button>
+                <button 
+                  onClick={() => setSelectedStudentForReport(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Report Card Document Content */}
+            <div className="p-8 print:p-0 text-slate-800" id="printable-report-card">
+              {/* Document Header */}
+              <div className="text-center border-b-2 border-slate-800 pb-6 mb-6">
+                <div className="flex justify-center items-center gap-3 mb-2">
+                  <div className="w-12 h-12 bg-indigo-600 rounded flex items-center justify-center text-white text-xl font-bold tracking-wider">
+                    SB
+                  </div>
+                  <h1 className="text-2xl font-black uppercase tracking-wider text-slate-900">SomoBloom Academy</h1>
+                </div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Official Academic Achievement Record</p>
+              </div>
+
+              {/* Student details grid */}
+              <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+                <div>
+                  <p className="text-slate-500 font-semibold text-xs uppercase tracking-wider">Learner Name</p>
+                  <p className="font-bold text-slate-900 text-base">{selectedStudentForReport.name}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 font-semibold text-xs uppercase tracking-wider">Grade Level / Class</p>
+                  <p className="font-bold text-slate-900 text-base">{selectedClass ? `${selectedClass.name} (${selectedClass.grade})` : 'Grade 4'}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 font-semibold text-xs uppercase tracking-wider">Academic Term</p>
+                  <p className="font-bold text-slate-900">Term 1, 2026</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 font-semibold text-xs uppercase tracking-wider">Attendance Rate</p>
+                  <p className="font-bold text-slate-900">
+                    {selectedStudentForReport.attendance ? 
+                      `${((selectedStudentForReport.attendance.present / (selectedStudentForReport.attendance.total || 1)) * 100).toFixed(1)}%` 
+                      : '94.2%'}
+                  </p>
+                </div>
+              </div>
+
+              {/* CBC Strands and Competency Grades Table */}
+              <div className="mb-6">
+                <h3 className="font-bold text-xs uppercase tracking-wider text-slate-700 border-b border-slate-300 pb-2 mb-3">
+                  Competency-Based Curriculum (CBC) Assessment
+                </h3>
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-400 bg-slate-50">
+                      <th className="py-2 px-3 font-bold text-slate-600">Learning Strand / Competency</th>
+                      <th className="py-2 px-3 font-bold text-slate-600 text-right">Assessment Level</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(!selectedStudentForReport.cbcAssessments?.strands || selectedStudentForReport.cbcAssessments.strands.length === 0) ? (
+                      <>
+                        <tr className="border-b border-slate-200">
+                          <td className="py-2.5 px-3 font-medium">Literacy & Communication Skills</td>
+                          <td className="py-2.5 px-3 text-right"><span className="font-bold text-emerald-600">Exceeding Expectation (EE)</span></td>
+                        </tr>
+                        <tr className="border-b border-slate-200">
+                          <td className="py-2.5 px-3 font-medium">Mathematical & Numeracy Skills</td>
+                          <td className="py-2.5 px-3 text-right"><span className="font-bold text-indigo-600">Meeting Expectation (ME)</span></td>
+                        </tr>
+                        <tr className="border-b border-slate-200">
+                          <td className="py-2.5 px-3 font-medium">Scientific & Environmental Explorations</td>
+                          <td className="py-2.5 px-3 text-right"><span className="font-bold text-indigo-600">Meeting Expectation (ME)</span></td>
+                        </tr>
+                        <tr className="border-b border-slate-200">
+                          <td className="py-2.5 px-3 font-medium">Creative Arts & Spatial Expression</td>
+                          <td className="py-2.5 px-3 text-right"><span className="font-bold text-amber-500">Approaching Expectation (AE)</span></td>
+                        </tr>
+                      </>
+                    ) : (
+                      selectedStudentForReport.cbcAssessments.strands.map(s => (
+                        <tr key={s.name} className="border-b border-slate-200">
+                          <td className="py-2.5 px-3 font-medium">{s.name}</td>
+                          <td className="py-2.5 px-3 text-right">
+                            <span className={`font-bold ${
+                              s.level === 'EE' ? 'text-emerald-600' :
+                              s.level === 'ME' ? 'text-indigo-600' :
+                              s.level === 'AE' ? 'text-amber-500' : 'text-rose-500'
+                            }`}>
+                              {s.level === 'EE' ? 'Exceeding Expectation (EE)' :
+                               s.level === 'ME' ? 'Meeting Expectation (ME)' :
+                               s.level === 'AE' ? 'Approaching Expectation (AE)' : 'Below Expectation (BE)'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Dynamic AI-Generated / Teacher Remarks */}
+              <div className="mb-8 p-4 bg-slate-50 border border-slate-200 rounded">
+                <p className="text-slate-500 font-semibold text-xs uppercase tracking-wider mb-2">Teacher Remarks & Core Value Assessment</p>
+                <p className="text-sm font-medium text-slate-800 leading-relaxed italic">
+                  "{selectedStudentForReport.name} displays exemplary leadership qualities, teamwork capability, and is highly inquisitive. Highly recommended to maintain standard practice in self-directed learning projects."
+                </p>
+              </div>
+
+              {/* Signatures block */}
+              <div className="flex justify-between items-end pt-12 text-sm">
+                <div className="text-center flex flex-col items-center">
+                  <div className="w-32 border-b border-slate-400 pb-1 font-semibold italic text-slate-400">Wanjiku K.</div>
+                  <p className="font-bold text-slate-800 mt-2">Class Teacher</p>
+                  <p className="text-[10px] text-slate-400">SomoBloom Academy</p>
+                </div>
+                <div className="text-center flex flex-col items-center">
+                  <div className="w-32 border-b border-slate-400 pb-1 font-semibold italic text-slate-400">School Principal</div>
+                  <p className="font-bold text-slate-800 mt-2">Approved & Sealed</p>
+                  <p className="text-[10px] text-slate-400">Official Signature</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

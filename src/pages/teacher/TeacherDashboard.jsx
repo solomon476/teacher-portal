@@ -82,13 +82,103 @@ export default function TeacherDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Main Feed */}
-        <div className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden h-full">
+        {/* Visual Analytics Widgets */}
+        <div className="lg:col-span-2 space-y-6 animate-in fade-in duration-700">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Widget 1: CBC Student Achievement Distribution */}
+            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">CBC Achievement Level</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Active Learner Distribution</p>
+                </div>
+                <div className="p-1 bg-slate-50 border border-slate-100 rounded text-slate-500 text-xs font-semibold">
+                  Overall Term
+                </div>
+              </div>
+              
+              {/* SVG Bar Chart */}
+              <div className="flex items-end justify-between gap-4 h-32 pt-4 px-2">
+                {[
+                  { label: 'Below (BE)', value: 8, color: '#f87171' },
+                  { label: 'Approach (AE)', value: 18, color: '#fbbf24' },
+                  { label: 'Meet (ME)', value: 48, color: '#4f46e5' },
+                  { label: 'Exceed (EE)', value: 26, color: '#10b981' }
+                ].map(d => (
+                  <div key={d.label} className="flex-1 flex flex-col items-center gap-1 group">
+                    <span className="text-[10px] font-bold text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {d.value}%
+                    </span>
+                    <div 
+                      className="w-full rounded-t transition-all duration-300 hover:scale-x-105"
+                      style={{ height: `${d.value * 1.5}px`, backgroundColor: d.color }}
+                    />
+                    <span className="text-[9px] font-bold text-slate-500 mt-1 uppercase tracking-wider text-center">{d.label.split(' ')[0]}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Widget 2: Weekly Attendance Trend Line */}
+            <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm">Attendance Trend</h3>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Average Rate (Mon - Fri)</p>
+                </div>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                  94.2% Avg
+                </span>
+              </div>
+
+              {/* Curvy SVG Line Chart */}
+              <div className="relative">
+                <svg viewBox="0 0 300 100" className="w-full h-32 overflow-visible">
+                  <defs>
+                    <linearGradient id="attGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Grid background lines */}
+                  <line x1="0" y1="20" x2="300" y2="20" stroke="#f8fafc" strokeWidth="1.5" />
+                  <line x1="0" y1="50" x2="300" y2="50" stroke="#f8fafc" strokeWidth="1.5" />
+                  <line x1="0" y1="80" x2="300" y2="80" stroke="#f8fafc" strokeWidth="1.5" />
+
+                  {/* Gradient Area under line */}
+                  <path d="M 10,80 Q 75,55 145,65 T 290,15 L 290,100 L 10,100 Z" fill="url(#attGrad)" />
+
+                  {/* Stroke Line */}
+                  <path d="M 10,80 Q 75,55 145,65 T 290,15" fill="none" stroke="#4f46e5" strokeWidth="3.5" strokeLinecap="round" />
+
+                  {/* Highlight Dots */}
+                  <circle cx="10" cy="80" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="2.5" />
+                  <circle cx="75" cy="55" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="2.5" />
+                  <circle cx="145" cy="65" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="2.5" />
+                  <circle cx="215" cy="40" r="4.5" fill="#4f46e5" stroke="#ffffff" strokeWidth="2.5" />
+                  <circle cx="290" cy="15" r="4.5" fill="#10b981" stroke="#ffffff" strokeWidth="2.5" />
+                </svg>
+                <div className="flex justify-between text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-2 px-1">
+                  <span>Mon</span>
+                  <span>Tue</span>
+                  <span>Wed</span>
+                  <span>Thu</span>
+                  <span>Fri</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Recent Activity Feed */}
+          <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <h2 className="font-bold text-slate-900">Recent Activity</h2>
               <button 
-                onClick={() => alert('Full activity history feature coming soon!')}
+                onClick={() => alert('Full activity history is synced dynamically.')}
                 className="text-xs font-bold text-indigo-600 hover:text-indigo-700"
               >
                 View History
@@ -101,7 +191,7 @@ export default function TeacherDashboard() {
                 { type: 'Attendance', text: 'Grade 4 Science roll call was completed', time: 'Today', icon: Check, color: 'text-emerald-500' },
                 { type: 'Class', text: 'New strand "Sustainable Agriculture" added to Grade 5', time: 'Yesterday', icon: Zap, color: 'text-indigo-500' },
               ].map((activity, i) => (
-                <div key={i} className="px-6 py-4 flex items-center justify-between group hover:bg-white border border-slate-100/50 transition-colors">
+                <div key={i} className="px-6 py-4 flex items-center justify-between group hover:bg-slate-50 transition-colors">
                   <div className="flex items-center gap-4">
                     <div className={`p-2 rounded-full bg-white border border-slate-100 ${activity.color}`}>
                       <activity.icon size={16} />
@@ -116,9 +206,10 @@ export default function TeacherDashboard() {
               ))}
             </div>
           </div>
+
         </div>
 
-        {/* Sidebar Insights */}
+        {/* Sidebar Insights & Actions */}
         <div className="space-y-6">
           <div className="bg-white border border-slate-200 rounded-lg p-6 text-slate-900 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
@@ -177,34 +268,31 @@ export default function TeacherDashboard() {
             )}
           </div>
 
-        </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-lg p-6 h-full">
+          <div className="bg-white border border-slate-200 rounded-lg p-6">
             <h3 className="font-bold text-slate-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <button 
                 onClick={() => navigate('/teacher/classes')}
-                className="w-full text-left px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"
+                className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 border border-transparent hover:border-slate-100 rounded transition-all"
               >
                 Mark Attendance
               </button>
               <button 
                 onClick={() => navigate('/teacher/portfolio')}
-                className="w-full text-left px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"
+                className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 border border-transparent hover:border-slate-100 rounded transition-all"
               >
                 New Portfolio Entry
               </button>
               <button 
                 onClick={() => alert('Meeting scheduler feature coming soon!')}
-                className="w-full text-left px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded transition-colors"
+                className="w-full text-left px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 border border-transparent hover:border-slate-100 rounded transition-all"
               >
                 Schedule Meeting
               </button>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

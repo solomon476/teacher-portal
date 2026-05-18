@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, User, LogOut, GraduationCap, BookOpen, Users, Menu, X, ChevronDown, Bell } from 'lucide-react';
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { useTeacher } from '../context/TeacherContext';
+import ThemeCustomizer from '../components/ThemeCustomizer';
 
 export default function PortalLayout() {
   const { teacherData, logout } = useTeacher();
@@ -160,6 +161,7 @@ export default function PortalLayout() {
           />
         )}
       </div>
+      <ThemeCustomizer />
     </div>
   );
 }
