@@ -22,7 +22,7 @@ export function TeacherProvider({ children }) {
         ...profile,
         classes: classes.map(c => ({
           ...c,
-          students: [] // Students can be fetched per class later
+          students: c.students || []
         })),
         portfolioItems: []
       });
@@ -102,55 +102,81 @@ export function TeacherProvider({ children }) {
     setTeacherData(prev => ({ ...prev, ...newData }));
   };
 
-  const updateAssessmentLevel = (classId, studentId, type, name, level) => {
-    setTeacherData(prev => ({
-      ...prev,
-      classes: prev.classes.map(c => 
-        c.id === classId 
-          ? {
-              ...c,
-              students: c.students.map(s =>
-                s.id === studentId
-                  ? {
-                      ...s,
-                      cbcAssessments: {
-                        ...s.cbcAssessments,
-                        [type]: type === 'strands' 
-                          ? (s.cbcAssessments?.strands || []).map(st => st.name === name ? { ...st, level } : st)
-                          : { ...s.cbcAssessments?.competencies, [name]: level }
+  const updateAssessmentLevel = async (classId, studentId, type, name, level) => {
+    setTeacherData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        classes: prev.classes.map(c => 
+          c.id === classId 
+            ? {
+                ...c,
+                students: c.students.map(s =>
+                  s.id === studentId
+                    ? {
+                        ...s,
+                        cbcAssessments: {
+                          ...s.cbcAssessments,
+                          [type]: type === 'strands' 
+                            ? (s.cbcAssessments?.strands || []).map(st => st.name === name ? { ...st, level } : st)
+                            : { ...s.cbcAssessments?.competencies, [name]: level }
+                        }
                       }
-                    }
-                  : s
-              )
-            }
-          : c
-      )
-    }));
+                    : s
+                )
+              }
+            : c
+        )
+      };
+    });
+
+    try {
+      await api.post(`/teacher/classes/${classId}/assessments`, {
+        studentProfileId: studentId,
+        type,
+        name,
+        level
+      });
+    } catch (err) {
+      console.error('Failed to update CBC assessment in backend:', err);
+    }
   };
 
-  const updateAttendance = (classId, studentId, isPresent) => {
-    setTeacherData(prev => ({
-      ...prev,
-      classes: prev.classes.map(c => 
-        c.id === classId 
-          ? {
-              ...c,
-              students: c.students.map(s =>
-                s.id === studentId
-                  ? {
-                      ...s,
-                      attendance: {
-                        ...s.attendance,
-                        present: isPresent ? s.attendance.present + 1 : Math.max(0, s.attendance.present - 1),
-                        total: s.attendance.total + 1
+  const updateAttendance = async (classId, studentId, isPresent) => {
+    setTeacherData(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        classes: prev.classes.map(c => 
+          c.id === classId 
+            ? {
+                ...c,
+                students: c.students.map(s =>
+                  s.id === studentId
+                    ? {
+                        ...s,
+                        attendance: {
+                          ...s.attendance,
+                          present: isPresent ? s.attendance.present + 1 : Math.max(0, s.attendance.present - 1),
+                          total: s.attendance.total + 1
+                        }
                       }
-                    }
-                  : s
-              )
-            }
-          : c
-      )
-    }));
+                    : s
+                )
+              }
+            : c
+        )
+      };
+    });
+
+    try {
+      await api.post(`/teacher/classes/${classId}/attendance`, {
+        studentProfileId: studentId,
+        isPresent
+      });
+    } catch (err) {
+      console.error('Failed to log attendance in backend:', err);
+    }
   };
 
   return (
