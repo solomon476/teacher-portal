@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTeacher } from '../context/TeacherContext';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Users, ArrowRight, ShieldCheck, BookOpen, Clock, Mail, Lock } from 'lucide-react';
+import SomoBloomLogo from '../components/SomoBloomLogo';
 
 export default function LoginPage() {
   const { login: teacherLogin } = useTeacher();
@@ -46,9 +47,9 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-xl">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-2xl mb-6 shadow-indigo-500/40 rotate-3">
-            <GraduationCap className="text-white" size={40} />
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="inline-flex items-center justify-center p-3 bg-white border border-slate-200 rounded-3xl shadow-2xl mb-6 shadow-indigo-500/10 rotate-3">
+            <SomoBloomLogo size={64} showText={false} />
           </div>
           <h1 className="text-5xl font-extrabold text-slate-900 mb-3 tracking-tight">Teacher <span className="text-indigo-600">Portal</span></h1>
           <p className="text-slate-500 text-lg font-medium">The Command Center for Educators</p>

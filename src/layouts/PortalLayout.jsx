@@ -4,6 +4,7 @@ import { LayoutDashboard, User, LogOut, GraduationCap, BookOpen, Users, Menu, X,
 import { ErrorBoundary } from '../components/common/ErrorBoundary';
 import { useTeacher } from '../context/TeacherContext';
 import ThemeCustomizer from '../components/ThemeCustomizer';
+import SomoBloomLogo from '../components/SomoBloomLogo';
 
 export default function PortalLayout() {
   const { teacherData, logout } = useTeacher();
@@ -38,11 +39,8 @@ export default function PortalLayout() {
       `}>
         <div className="h-full flex flex-col">
           {/* Brand */}
-          <div className="p-6 flex items-center gap-3 border-b border-slate-100">
-            <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center">
-              <GraduationCap size={20} className="text-white" />
-            </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">Somobloom</span>
+          <div className="p-6 flex items-center border-b border-slate-100">
+            <SomoBloomLogo size={36} fontSize="17px" />
           </div>
 
           {/* Nav */}
