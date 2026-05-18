@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTeacher } from '../../context/TeacherContext';
+import { api } from '../../lib/api';
 import { 
   Users, 
   Search, 
@@ -80,26 +81,32 @@ export default function Classes() {
     }, 2000);
   };
 
-  const handleGeneratePlan = () => {
+  const handleGeneratePlan = async () => {
     if (!topicInput.trim()) {
       alert('Please enter a topic or subject focus to generate.');
       return;
     }
     setIsGenerating(true);
     setGeneratedPlan(null);
-    
-    // Simulate AI Generation
-    setTimeout(() => {
-      setIsGenerating(false);
-      const isScheme = planType === 'scheme';
-      setGeneratedPlan({
-        title: isScheme ? `Scheme of Work: ${topicInput}` : `Lesson Plan: ${topicInput}`,
-        date: new Date().toLocaleDateString(),
-        content: isScheme 
-          ? `### Term Overview\nFocuses on introducing ${topicInput} according to CBC standards.\n\n### Week 1\n- Introduction to core concepts of ${topicInput}\n- Learner-centered activities: Brainstorming sessions.\n\n### Week 2\n- Deep dive and practical applications.\n- Assessment: Formative observation.\n\n### Week 3\n- Project-based learning relating to ${topicInput}.\n- Integrating digital literacy.\n\n### Resources Required\n- Course book, digital devices, realia.`
-          : `### Lesson Objective\nBy the end of the lesson, the learner should be able to understand and apply concepts of ${topicInput}.\n\n### Introduction (10 mins)\n- Recap previous lesson.\n- Hook: Present a real-world scenario involving ${topicInput}.\n\n### Main Activity (25 mins)\n- Group discussion and collaborative exploration of ${topicInput}.\n- Teacher facilitates and guides groups.\n\n### Conclusion (5 mins)\n- Summarize key points.\n- Exit ticket: Quick reflection question on ${topicInput}.\n\n### Assessment Rubric\n- Exceeding Expectation: Can teach the concept to peers.\n- Meeting Expectation: Accurately explains ${topicInput}.`
+
+    try {
+      const res = await api.post('/teacher/ai/generate-plan', {
+        type: planType,
+        topic: topicInput,
+        className: selectedClass?.name
       });
-    }, 2500);
+
+      setGeneratedPlan({
+        title: res.title,
+        date: new Date().toLocaleDateString(),
+        content: res.content
+      });
+    } catch (err) {
+      console.error('Failed to generate AI plan:', err);
+      alert(err.message || 'AI Generation failed. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
 
