@@ -63,6 +63,14 @@ export default function LoginPage() {
             <div className="text-center mb-4">
               <h2 className="text-2xl font-bold text-slate-900">Teacher Login</h2>
               <p className="text-slate-500 text-sm">Access your workspace</p>
+              
+              <div 
+                onClick={() => setFormData({ email: 'teacher@somobloom.com', password: 'demo' })}
+                className="mt-3 px-3 py-2 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100/70 text-indigo-700 font-semibold rounded-2xl inline-flex items-center gap-1.5 text-xs cursor-pointer transition-all active:scale-95"
+              >
+                <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-ping" />
+                <span>Quick-fill Demo Credentials</span>
+              </div>
             </div>
 
             {error && (
