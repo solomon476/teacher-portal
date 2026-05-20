@@ -65,6 +65,21 @@ class ApiClient {
     return this.mutate<T>('POST', endpoint, data);
   }
 
+  async postMultipart<T>(endpoint: string, formData: FormData): Promise<T> {
+    const headers: Record<string, string> = {};
+    const token = localStorage.getItem(this.tokenKey);
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    return await this.handleResponse(response);
+  }
+
   async put<T>(endpoint: string, data: any): Promise<T> {
     return this.mutate<T>('PUT', endpoint, data);
   }

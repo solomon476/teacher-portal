@@ -104,6 +104,13 @@ export function TeacherProvider({ children }) {
 
       const { profile } = await api.get('/teacher/me');
       const { classes } = await api.get('/teacher/classes');
+      let portfolio = [];
+      try {
+        const response = await api.get('/teacher/portfolio');
+        portfolio = response.portfolio || [];
+      } catch (err) {
+        console.warn('Failed to load portfolio items, using empty list:', err);
+      }
       
       setTeacherData({
         ...profile,
@@ -111,7 +118,7 @@ export function TeacherProvider({ children }) {
           ...c,
           students: c.students || []
         })),
-        portfolioItems: []
+        portfolioItems: portfolio
       });
     } catch (err) {
       console.error('Failed to fetch teacher data:', err);
@@ -192,11 +199,42 @@ export function TeacherProvider({ children }) {
     }));
   };
 
-  const uploadEvidence = (item) => {
-    setTeacherData(prev => ({
-      ...prev,
-      portfolioItems: [{ ...item, id: `p-${Date.now()}`, date: new Date().toISOString() }, ...prev.portfolioItems]
-    }));
+  const uploadEvidence = async (formData) => {
+    const activeToken = localStorage.getItem('teacher_token');
+    if (activeToken && activeToken !== 'mock_teacher_token') {
+      try {
+        const response = await api.postMultipart('/teacher/portfolio/upload', formData);
+        if (response.item) {
+          setTeacherData(prev => ({
+            ...prev,
+            portfolioItems: [response.item, ...(prev.portfolioItems || [])]
+          }));
+          return true;
+        }
+      } catch (err) {
+        console.error('Failed to upload portfolio evidence to API:', err);
+        alert(err.message || 'Failed to upload portfolio evidence');
+      }
+    } else {
+      const tagsString = formData.get('tags') || '';
+      const newItem = {
+        id: `p-${Date.now()}`,
+        title: formData.get('title'),
+        type: formData.get('type'),
+        classId: formData.get('classId'),
+        studentProfileId: formData.get('studentProfileId') || 's-1',
+        tags: tagsString.split(',').map(t => t.trim()).filter(Boolean),
+        description: formData.get('description'),
+        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800',
+        date: new Date().toISOString().split('T')[0]
+      };
+      setTeacherData(prev => ({
+        ...prev,
+        portfolioItems: [newItem, ...(prev.portfolioItems || [])]
+      }));
+      return true;
+    }
+    return false;
   };
 
   const updateTags = (itemId, newTags) => {

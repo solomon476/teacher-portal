@@ -20,6 +20,7 @@ export default function TeacherPortfolio() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedTag, setSelectedTag] = useState('all');
+  const [modalClassId, setModalClassId] = useState('');
 
   const portfolioItems = teacherData?.portfolioItems || [];
   const classes = teacherData?.classes || [];
@@ -35,19 +36,13 @@ export default function TeacherPortfolio() {
     return matchesSearch && matchesClass && matchesTag;
   });
 
-  const handleUpload = (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const newItem = {
-      title: formData.get('title'),
-      type: formData.get('type'),
-      classId: formData.get('classId'),
-      tags: formData.get('tags').split(',').map(t => t.trim()),
-      description: formData.get('description'),
-      imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800' // Mock image
-    };
-    uploadEvidence(newItem);
-    setIsUploadModalOpen(false);
+    const success = await uploadEvidence(formData);
+    if (success) {
+      setIsUploadModalOpen(false);
+    }
   };
 
   return (
@@ -58,7 +53,10 @@ export default function TeacherPortfolio() {
           <p className="text-slate-500 font-medium">Upload and organize student work evidence.</p>
         </div>
         <button 
-          onClick={() => setIsUploadModalOpen(true)}
+          onClick={() => {
+            setIsUploadModalOpen(true);
+            setModalClassId(classes[0]?.id || '');
+          }}
           className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-semibold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 dark:shadow-none"
         >
           <Plus size={20} /> Upload Evidence
@@ -123,7 +121,10 @@ export default function TeacherPortfolio() {
             Upload student work to start building the portfolio library.
           </p>
           <button 
-            onClick={() => setIsUploadModalOpen(true)}
+            onClick={() => {
+              setIsUploadModalOpen(true);
+              setModalClassId(classes[0]?.id || '');
+            }}
             className="inline-flex items-center gap-2 px-6 py-2 bg-white border border-slate-200 shadow-sm border border-gray-200  rounded-xl font-medium hover:bg-white border border-slate-100 transition-all"
           >
             <Plus size={18} /> Upload Now
@@ -159,9 +160,40 @@ export default function TeacherPortfolio() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium">Class <span className="text-red-500">*</span></label>
-                  <select required name="classId" className="w-full px-4 py-3 bg-white border border-slate-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500">
+                  <select 
+                    required 
+                    name="classId" 
+                    value={modalClassId}
+                    onChange={(e) => setModalClassId(e.target.value)}
+                    className="w-full px-4 py-3 bg-white border border-slate-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  >
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">Student <span className="text-red-500">*</span></label>
+                  <select 
+                    required 
+                    name="studentProfileId" 
+                    className="w-full px-4 py-3 bg-white border border-slate-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {(classes.find(c => c.id === modalClassId)?.students || []).map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium">Evidence Media File <span className="text-red-500">*</span></label>
+                  <input 
+                    required 
+                    name="file" 
+                    type="file" 
+                    accept="image/*" 
+                    className="w-full px-4 py-2 bg-white border border-slate-100 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500" 
+                  />
                 </div>
               </div>
 
