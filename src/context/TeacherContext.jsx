@@ -7,7 +7,7 @@ const MOCK_TEACHER_PROFILE = {
   id: 'tch-1',
   name: 'Mrs. Janet Bloom',
   email: 'teacher@somobloom.com',
-  school: 'Somobloom Elementary School',
+  school: 'SomoBloom Elementary School',
   avatarUrl: null
 };
 
