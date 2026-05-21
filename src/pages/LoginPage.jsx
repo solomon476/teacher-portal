@@ -82,15 +82,15 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-600 flex items-center gap-2 px-1">
-                  <Mail size={14} /> Email Address
+                  <Mail size={14} /> Email or Phone Number
                 </label>
                 <input
                   required
-                  type="email"
+                  type="text"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="name@school.edu"
+                  placeholder="Email or Phone Number"
                   className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
                 />
               </div>
