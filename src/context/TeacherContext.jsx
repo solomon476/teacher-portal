@@ -3,78 +3,7 @@ import { api } from '../lib/api';
 
 const TeacherContext = createContext();
 
-const MOCK_TEACHER_PROFILE = {
-  id: 'tch-1',
-  name: 'Mrs. Janet Bloom',
-  email: 'teacher@somobloom.com',
-  school: 'SomoBloom Elementary School',
-  avatarUrl: null
-};
 
-const MOCK_TEACHER_CLASSES = [
-  {
-    id: 'class-1',
-    name: 'Grade 4 Science',
-    subject: 'Science',
-    students: [
-      {
-        id: 's-1',
-        name: 'Sarah Smith',
-        portfolioCount: 3,
-        attendance: { present: 18, total: 20 },
-        cbcAssessments: {
-          strands: [
-            { name: 'Environment & Weather', level: 'proficient' },
-            { name: 'Plants & Germination', level: 'exemplary' }
-          ],
-          competencies: {
-            'Scientific Reasoning': 'proficient',
-            'Observation': 'exemplary'
-          }
-        }
-      },
-      {
-        id: 's-2',
-        name: 'Alex Mercer',
-        portfolioCount: 1,
-        attendance: { present: 20, total: 20 },
-        cbcAssessments: {
-          strands: [
-            { name: 'Environment & Weather', level: 'developing' },
-            { name: 'Plants & Germination', level: 'proficient' }
-          ],
-          competencies: {
-            'Scientific Reasoning': 'developing',
-            'Observation': 'proficient'
-          }
-        }
-      }
-    ]
-  },
-  {
-    id: 'class-2',
-    name: 'Grade 6 Mathematics',
-    subject: 'Mathematics',
-    students: [
-      {
-        id: 's-3',
-        name: 'Ben Carter',
-        portfolioCount: 2,
-        attendance: { present: 15, total: 20 },
-        cbcAssessments: {
-          strands: [
-            { name: 'Algebra', level: 'proficient' },
-            { name: 'Geometry', level: 'beginning' }
-          ],
-          competencies: {
-            'Logical Deduction': 'proficient',
-            'Calculations': 'developing'
-          }
-        }
-      }
-    ]
-  }
-];
 
 export function TeacherProvider({ children }) {
   const [teacherData, setTeacherData] = useState(null);
@@ -89,19 +18,6 @@ export function TeacherProvider({ children }) {
     if (!activeToken) return;
     setIsLoading(true);
     try {
-      if (activeToken === 'mock_teacher_token') {
-        const stored = localStorage.getItem('teacher_profile');
-        const parsed = stored ? JSON.parse(stored) : MOCK_TEACHER_PROFILE;
-        const storedClasses = localStorage.getItem('teacher_classes');
-        const parsedClasses = storedClasses ? JSON.parse(storedClasses) : MOCK_TEACHER_CLASSES;
-        setTeacherData({
-          ...parsed,
-          classes: parsedClasses,
-          portfolioItems: []
-        });
-        return;
-      }
-
       const { profile } = await api.get('/teacher/me');
       const { classes } = await api.get('/teacher/classes');
       let portfolio = [];
@@ -140,23 +56,13 @@ export function TeacherProvider({ children }) {
     setIsLoading(true);
     setError(null);
     try {
-      if (email === 'demo@somobloom.com' || email === 'teacher@somobloom.com') {
-        localStorage.setItem('teacher_token', 'mock_teacher_token');
-        localStorage.setItem('teacher_profile', JSON.stringify(MOCK_TEACHER_PROFILE));
-        localStorage.setItem('teacher_classes', JSON.stringify(MOCK_TEACHER_CLASSES));
-        setAuthToken('mock_teacher_token');
-        return;
-      }
-
       const data = await api.post('/auth/login', { email, password });
       localStorage.setItem('teacher_token', data.token);
       setAuthToken(data.token);
     } catch (err) {
-      console.warn('Real API failed, falling back to demo mode:', err);
-      localStorage.setItem('teacher_token', 'mock_teacher_token');
-      localStorage.setItem('teacher_profile', JSON.stringify(MOCK_TEACHER_PROFILE));
-      localStorage.setItem('teacher_classes', JSON.stringify(MOCK_TEACHER_CLASSES));
-      setAuthToken('mock_teacher_token');
+      console.error('Login failed:', err);
+      setError(err.message || 'Invalid credentials');
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -201,7 +107,7 @@ export function TeacherProvider({ children }) {
 
   const uploadEvidence = async (formData) => {
     const activeToken = localStorage.getItem('teacher_token');
-    if (activeToken && activeToken !== 'mock_teacher_token') {
+    if (activeToken) {
       try {
         const response = await api.postMultipart('/teacher/portfolio/upload', formData);
         if (response.item) {
@@ -215,24 +121,6 @@ export function TeacherProvider({ children }) {
         console.error('Failed to upload portfolio evidence to API:', err);
         alert(err.message || 'Failed to upload portfolio evidence');
       }
-    } else {
-      const tagsString = formData.get('tags') || '';
-      const newItem = {
-        id: `p-${Date.now()}`,
-        title: formData.get('title'),
-        type: formData.get('type'),
-        classId: formData.get('classId'),
-        studentProfileId: formData.get('studentProfileId') || 's-1',
-        tags: tagsString.split(',').map(t => t.trim()).filter(Boolean),
-        description: formData.get('description'),
-        imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800',
-        date: new Date().toISOString().split('T')[0]
-      };
-      setTeacherData(prev => ({
-        ...prev,
-        portfolioItems: [newItem, ...(prev.portfolioItems || [])]
-      }));
-      return true;
     }
     return false;
   };
